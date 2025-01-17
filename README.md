@@ -1,77 +1,143 @@
-# README - TodoApi
+# README - SampleAPI
 
 ## Giới thiệu
-
-**TodoApi** là một ứng dụng API đơn giản được xây dựng bằng ASP.NET Core để quản lý danh sách việc cần làm (Todo List). API cung cấp các phương thức HTTP để tạo, đọc, cập nhật và xóa (CRUD) các mục Todo.
+**SampleAPI** là một RESTful API được xây dựng bằng ASP.NET Core, sử dụng MongoDB để quản lý thông tin sách. API cung cấp các chức năng CRUD cơ bản cho đối tượng `Book`.
 
 ---
 
 ## Cấu trúc dự án
 
-### Các tệp chính
+### 1. **Controllers**
+#### **BooksController.cs**
+- **Namespace**: `SampleAPI.Controllers`
+- Điều khiển các yêu cầu HTTP liên quan đến tài nguyên `Book`.
 
-#### `Todo.cs`
-- **Mô tả**: Lớp `Todo` đại diện cho một mục việc cần làm.
-- **Thuộc tính**:
-  - `Id` (int): Mã định danh duy nhất cho mỗi mục.
-  - `Name` (string?): Tên của công việc cần làm.
-  - `IsComplete` (bool): Trạng thái hoàn thành của công việc.
-
-#### `TodoDb.cs`
-- **Mô tả**: Lớp `TodoDb` quản lý kết nối cơ sở dữ liệu sử dụng Entity Framework Core với cơ chế lưu trữ dữ liệu trong bộ nhớ (In-Memory Database).
-- **Thuộc tính**:
-  - `Todos` (DbSet<Todo>): Bảng chứa danh sách các mục việc cần làm.
-
-#### `Program.cs`
-- **Mô tả**: Tệp chính khởi chạy ứng dụng API và định nghĩa các điểm cuối (endpoints) để thao tác với các mục Todo.
-- **Cấu hình**:
-  - Sử dụng cơ sở dữ liệu trong bộ nhớ với `AddDbContext<TodoDb>()`.
-  - Kích hoạt `DatabaseDeveloperPageExceptionFilter()` để hỗ trợ xử lý lỗi khi phát triển.
-- **Các điểm cuối API**:
-  - `GET /todoitems`: Trả về danh sách tất cả mục Todo.
-  - `GET /todoitems/complete`: Trả về danh sách các mục Todo đã hoàn thành.
-  - `GET /todoitems/{id}`: Trả về thông tin một mục Todo dựa trên ID.
-  - `POST /todoitems`: Tạo một mục Todo mới.
-  - `PUT /todoitems/{id}`: Cập nhật thông tin một mục Todo theo ID.
-  - `DELETE /todoitems/{id}`: Xóa một mục Todo dựa trên ID.
+**Các phương thức chính:**
+- `GET /api/books`: Lấy danh sách tất cả sách.
+- `GET /api/books/{id}`: Lấy thông tin sách theo ID.
+- `POST /api/books`: Thêm sách mới.
+- `PUT /api/books/{id}`: Cập nhật sách theo ID.
+- `DELETE /api/books/{id}`: Xóa sách theo ID.
 
 ---
-### Tạo tệp `TodoApi.http` với cấu trúc như sau:
 
-##### 1. **Biến Host Address**:  
-   - `@TodoApi_HostAddress = https://localhost:7189`  
-   - Định nghĩa địa chỉ máy chủ của API để sử dụng cho các truy vấn, giúp tránh việc lặp lại URL.
+### 2. **Models**
+#### **Book.cs**
+- **Namespace**: `SampleAPI.Models`
+- Mô hình dữ liệu cho đối tượng `Book`.
 
-##### 2. **POST /todoitems**:  
-   - Tạo một mục Todo mới.  
-   - Dữ liệu mẫu:  
-     - `name`: "walk dog"  
-     - `isComplete`: `true`
+**Các thuộc tính:**
+- `Id`: ID của sách (chuỗi ObjectId).
+- `BookName`: Tên sách.
+- `Price`: Giá sách (kiểu `decimal`).
+- `Category`: Thể loại sách.
+- `Author`: Tác giả.
 
-##### 3. **GET /todoitems**:  
-   - Lấy danh sách tất cả các mục Todo.
+#### **BookStoreDatabaseSettings.cs**
+- **Namespace**: `SampleAPI.Models`
+- Cấu hình kết nối cơ sở dữ liệu.
 
-##### 4. **GET /todoitems/complete**:  
-   - Lấy danh sách các mục Todo đã hoàn thành (`IsComplete = true`).
+**Các thuộc tính:**
+- `ConnectionString`: Chuỗi kết nối tới MongoDB.
+- `DatabaseName`: Tên cơ sở dữ liệu.
+- `BooksCollectionName`: Tên của bộ sưu tập sách.
 
-##### 5. **GET /todoitems/{id}**:  
-   - Lấy thông tin chi tiết của một mục Todo dựa trên `id`.  
-   - Ví dụ: `/todoitems/1` lấy mục Todo có `Id = 1`.
+---
 
-##### 6. **PUT /todoitems/{id}**:  
-   - Cập nhật thông tin cho một mục Todo dựa trên `id`.  
-   - Dữ liệu mẫu:  
-     - `name`: "feed fish"  
-     - `isComplete`: `false`
+### 3. **Services**
+#### **BooksService.cs**
+- **Namespace**: `SampleAPI.Services`
+- Cung cấp các phương thức thao tác với cơ sở dữ liệu.
 
-##### 7. **DELETE /todoitems/{id}**:  
-   - Xóa một mục Todo dựa trên `id`.  
-   - Ví dụ: `/todoitems/1` xóa mục Todo có `Id = 1`.
-### Hướng dẫn chạy dự án
-- Nhấn F5 hoặc nút Start trong Visual Studio để khởi động ứng dụng.
+**Các phương thức chính:**
+- `GetAsync()`: Lấy danh sách tất cả sách.
+- `GetAsync(string id)`: Lấy sách theo ID.
+- `CreateAsync(Book newBook)`: Thêm sách mới.
+- `UpdateAsync(string id, Book updatedBook)`: Cập nhật sách theo ID.
+- `RemoveAsync(string id)`: Xóa sách theo ID.
+
+**Khởi tạo MongoDB Client:**
+```csharp
+var mongoClient = new MongoClient(bookStoreDatabaseSettings.Value.ConnectionString);
+var mongoDatabase = mongoClient.GetDatabase(bookStoreDatabaseSettings.Value.DatabaseName);
+_booksCollection = mongoDatabase.GetCollection<Book>(bookStoreDatabaseSettings.Value.BooksCollectionName);
+```
+
+---
+
+### 4. Program.cs
+Cấu hình và khởi chạy ứng dụng. 
+```csharp
+builder.Services.Configure<BookStoreDatabaseSettings>(
+    builder.Configuration.GetSection("BookStoreDatabase")
+);
+builder.Services.AddSingleton<BooksService>();
+builder.Services.AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
+builder.Services.AddSwaggerGen();
+```
+
+Thiết lập Swagger và pipeline:
+```csharp
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+app.Run();
+
+```
+
+### Kết quả đạt được
+
+Khi chạy dự án bằng cách nhấn **F5** hoặc chọn **Start**, ứng dụng sẽ khởi chạy trên địa chỉ mặc định được hiển thị trên trình duyệt:  
+**URL**: `https://localhost:7222/swagger/index.html`  
+
+**Giao diện Swagger UI** cung cấp tài liệu cho API với các endpoint chính như trong hình. Mỗi endpoint tương ứng với một hành động CRUD cho đối tượng `Book`:
+- **GET /api/books**: Truy vấn danh sách tất cả các sách từ cơ sở dữ liệu.
+- **POST /api/books**: Thêm một sách mới bằng cách nhập dữ liệu mẫu.
+- **GET /api/books/{id}**: Lấy thông tin một sách cụ thể thông qua `id` của sách.
+- **PUT /api/books/{id}**: Cập nhật thông tin của sách bằng cách cung cấp `id` và thông tin mới.
+- **DELETE /api/books/{id}**: Xóa một sách cụ thể theo `id`.
+
+### Cách sử dụng Swagger UI
+- Mở một phương thức bằng cách nhấp vào thanh tiêu đề (ví dụ: **GET /api/books**).
+- Nhấn vào nút **Try it out** để thử nghiệm trực tiếp.
+- Nhập giá trị cần thiết (nếu có) và nhấn **Execute** để gửi yêu cầu.
+- Xem kết quả phản hồi trong phần **Responses**.
+
+> Lưu ý: Các phương thức có tham số `id` yêu cầu nhập ID hợp lệ của sách để thao tác thành công.
+
+## Kết quả đạt được
+### Chạy API với Endpoint Explorer
+- Sau khi cấu hình xong các phương thức GET, POST, PUT, DELETE trong tệp TodoApi.http, bạn có thể thực hiện các truy vấn API bằng cách:
 - Mở Endpoint Explorer:
-- Vào View > Other Windows > Endpoint Explorer.
-- Chọn các phương thức POST, GET, PUT, DELETE trong TodoApi.http và nhấn Send Request để thực hiện truy vấn.
-### Yêu cầu hệ thống
-- .NET SDK 7.0 hoặc mới hơn.
-- Visual Studio 2022 hoặc bất kỳ trình biên dịch .NET hỗ trợ Endpoint Explorer.
+   - Vào View > Other Windows > Endpoint Explorer trong Visual Studio.
+   - Chọn phương thức tương ứng trong tệp TodoApi.http.
+   - Nhấn Send Request để gửi truy vấn.
+- Lưu ý khi chạy các phương thức:
+   - PUT và DELETE: Cần chỉnh sửa tham số id để phù hợp với các mục hiện có trong cơ sở dữ liệu. Ví dụ:
+      - PUT /todoitems/1 để cập nhật mục có id = 1.
+      - DELETE /todoitems/1 để xóa mục có id = 1.
+   - POST: Đảm bảo cung cấp đúng định dạng dữ liệu đầu vào, ví dụ:
+
+```csharp
+{
+  "name": "walk dog",
+  "isComplete": true
+}
+```
+### Kết quả giao diện
+- Giao diện và kết quả: Sau khi nhấn Send Request, Visual Studio sẽ hiển thị kết quả truy vấn với thông tin chi tiết như:
+- Status: Trạng thái HTTP (ví dụ: 201 Created cho POST thành công).
+- Body: Nội dung phản hồi, ví dụ:
+```csharp
+{
+  "id": 1,
+  "name": "walk dog",
+  "isComplete": true
+}
+```
